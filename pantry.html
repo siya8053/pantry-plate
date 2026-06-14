@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pantry Plate</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- Background images -->
+<div class="food-bg">
+    <div class="food-slide active" style="background-image: url('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=1920&q=80')"></div>
+    <div class="food-slide" style="background-image: url('https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=1920&q=80')"></div>
+    <div class="food-slide" style="background-image: url('https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=1920&q=80')"></div>
+    <div class="food-slide" style="background-image: url('https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=1920&q=80')"></div>
+    <div class="food-slide" style="background-image: url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1920&q=80')"></div>
+</div>
+<div class="bg-overlay"></div>
+
+<!-- Sidebar -->
+<aside id="sidebar" class="sidebar">
+    <div class="sidebar-header">
+        <h2>Pantry <em>Plate</em></h2>
+        <button class="sidebar-close" onclick="toggleSidebar()" aria-label="Close sidebar">×</button>
+    </div>
+
+    <nav class="sidebar-nav">
+        <button class="nav-item active" onclick="showSidebarSection('favorites')">
+            Favorites
+            <span id="favCount" class="nav-count">0</span>
+        </button>
+    </nav>
+
+    <div id="favoritesSection" class="sidebar-section">
+        <p class="sidebar-label">Saved recipes</p>
+        <div id="favoritesList" class="favorites-list">
+            <p class="empty-favorites">No favorites yet. Save a recipe with the heart icon.</p>
+        </div>
+    </div>
+</aside>
+<div id="sidebarBackdrop" class="sidebar-backdrop hidden" onclick="toggleSidebar()"></div>
+
+<!-- Top bar -->
+<header class="topbar">
+    <button class="menu-btn" onclick="toggleSidebar()" aria-label="Open menu">☰</button>
+    <span class="topbar-brand">Pantry <span>Plate</span></span>
+    <button class="fav-toggle-btn" onclick="toggleSidebar()" aria-label="View favorites">
+        ♥ <span id="favCountTop">0</span>
+    </button>
+</header>
+
+<div class="main-container">
+    <header class="hero">
+    <p class="eyebrow">Cook from what you already have</p>
+    <div class="title-wrap">
+        <span class="title-icon" aria-hidden="true">🍽</span>
+        <h1 class="title">
+            Pantry <span class="title-accent">Plate</span>
+        </h1>
+        <span class="title-tag">your kitchen, your menu</span>
+    </div>
+    <p class="subtitle">Enter one ingredient, choose your preferences, and browse recipes worth making tonight.</p>
+    </header>
+
+    <div class="filters">
+        <div class="filter-group">
+            <label for="dietFilter">Diet</label>
+            <select id="dietFilter">
+                <option value="all">All</option>
+                <option value="veg">Vegetarian</option>
+                <option value="non-veg">Non-vegetarian</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="healthyFilter">Style</label>
+            <select id="healthyFilter">
+                <option value="all">All</option>
+                <option value="healthy">Healthy</option>
+                <option value="unhealthy">Indulgent</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="input-area">
+        <input type="text" id="itemInput" placeholder="e.g. potato, egg, pasta, paneer">
+        <button id="generateBtn" onclick="generate()">Find recipes</button>
+    </div>
+
+    <div id="loading" class="loading hidden">Looking up recipes…</div>
+    <div id="result" class="results-grid"></div>
+</div>
+
+<!-- Recipe modal -->
+<div id="recipeModal" class="modal hidden">
+    <div class="modal-backdrop" onclick="closeRecipeModal()"></div>
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeRecipeModal()" aria-label="Close">×</button>
+        <button id="modalFavBtn" class="modal-fav-btn" onclick="toggleFavoriteFromModal()">♡ Save</button>
+        <div id="modalBody"></div>
+    </div>
+</div>
+
+<script>
+const FAVORITES_KEY = "pantryPlateFavorites";
+let currentModalRecipe = null;
+let favorites = loadFavorites();
+
+// Background slideshow
+const slides = document.querySelectorAll(".food-slide");
+let slideIndex = 0;
+setInterval(() => {
+    slides[slideIndex].classList.remove("active");
+    slideIndex = (slideIndex + 1) % slides.length;
+    slides[slideIndex].classList.add("active");
+}, 6000);
+
+document.getElementById("itemInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") generate();
+});
+
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+        closeRecipeModal();
+        closeSidebarIfOpen();
+    }
+});
+
+// ---------- Favorites ----------
+function loadFavorites() {
+    try {
+        return JSON.parse(localStorage.getItem(FAVORITES_KEY)) || [];
+    } catch {
+        return [];
+    }
+}
+
+function saveFavorites() {
+    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+    renderFavoritesSidebar();
+    updateFavoriteCounts();
+}
+
+function recipeId(recipe) {
+    return recipe.name.toLowerCase().replace(/\s+/g, "-");
+}
+
+function isFavorite(recipe) {
+    const id = recipeId(recipe);
+    return favorites.some(f => recipeId(f) === id);
+}
+
+function toggleFavorite(recipe, e) {
+    if (e) e.stopPropagation();
+    const id = recipeId(recipe);
+
+    if (isFavorite(recipe)) {
+        favorites = favorites.filter(f => recipeId(f) !== id);
+    } else {
+        favorites.push(recipe);
+    }
+
+    saveFavorites();
+    refreshFavoriteButtons();
+}
+
+function toggleFavoriteFromModal() {
+    if (!currentModalRecipe) return;
+    toggleFavorite(currentModalRecipe);
+    updateModalFavButton();
+}
+
+function updateModalFavButton() {
+    const btn = document.getElementById("modalFavBtn");
+    if (!currentModalRecipe) return;
+    const saved = isFavorite(currentModalRecipe);
+    btn.textContent = saved ? "♥ Saved" : "♡ Save";
+    btn.classList.toggle("saved", saved);
+}
+
+function refreshFavoriteButtons() {
+    document.querySelectorAll(".fav-btn").forEach(btn => {
+        const name = btn.dataset.name;
+        const saved = favorites.some(f => f.name === name);
+        btn.textContent = saved ? "♥" : "♡";
+        btn.classList.toggle("saved", saved);
+    });
+    updateModalFavButton();
+}
+
+function updateFavoriteCounts() {
+    const count = favorites.length;
+    document.getElementById("favCount").textContent = count;
+    document.getElementById("favCountTop").textContent = count;
+}
+
+function renderFavoritesSidebar() {
+    const list = document.getElementById("favoritesList");
+
+    if (favorites.length === 0) {
+        list.innerHTML = `<p class="empty-favorites">No favorites yet. Save a recipe with the heart icon.</p>`;
+        return;
+    }
+
+    list.innerHTML = favorites.map(recipe => `
+        <div class="favorite-item">
+            <button class="favorite-open" onclick='openRecipeFromSidebar(${JSON.stringify(recipe).replace(/'/g, "&#39;")})'>
+                <strong>${recipe.name}</strong>
+                <span>${recipe.total_time} · ${recipe.calories} kcal</span>
+            </button>
+            <button class="favorite-remove" onclick='removeFavorite("${recipe.name}")' title="Remove">×</button>
+        </div>
+    `).join("");
+}
+
+function removeFavorite(name) {
+    favorites = favorites.filter(f => f.name !== name);
+    saveFavorites();
+}
+
+function openRecipeFromSidebar(recipe) {
+    openRecipeModal(recipe);
+}
+
+// ---------- Sidebar ----------
+function toggleSidebar() {
+    document.getElementById("sidebar").classList.toggle("open");
+    document.getElementById("sidebarBackdrop").classList.toggle("hidden");
+}
+
+function closeSidebarIfOpen() {
+    document.getElementById("sidebar").classList.remove("open");
+    document.getElementById("sidebarBackdrop").classList.add("hidden");
+}
+
+function showSidebarSection(section) {
+    // ready for more sections later
+    document.getElementById("favoritesSection").style.display = section === "favorites" ? "block" : "none";
+}
+
+// ---------- API ----------
+function generate() {
+    const item = document.getElementById("itemInput").value.trim();
+    const diet = document.getElementById("dietFilter").value;
+    const healthy = document.getElementById("healthyFilter").value;
+    const output = document.getElementById("result");
+    const loading = document.getElementById("loading");
+
+    output.innerHTML = "";
+
+    if (item === "") {
+        output.innerHTML = `<p class="error">Please enter an ingredient.</p>`;
+        return;
+    }
+
+    loading.classList.remove("hidden");
+
+    fetch("/get_recipe", {   // <-- changed to relative URL
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `item=${encodeURIComponent(item)}&diet=${diet}&healthy=${healthy}`
+    })
+    .then(res => res.json())
+    .then(data => {
+        loading.classList.add("hidden");
+
+        if (data.error) {
+            output.innerHTML = `<p class="error">${data.error}</p>`;
+            return;
+        }
+
+        data.recipes.forEach((recipe, i) => {
+            const card = document.createElement("article");
+            card.className = "recipe-card";
+            card.style.animationDelay = `${i * 0.08}s`;
+
+            const dietBadge = recipe.diet === "veg"
+                ? `<span class="badge veg">Vegetarian</span>`
+                : `<span class="badge non-veg">Non-vegetarian</span>`;
+
+            const healthBadge = recipe.healthy
+                ? `<span class="badge healthy">Healthy</span>`
+                : `<span class="badge indulgent">Indulgent</span>`;
+
+            const saved = isFavorite(recipe);
+
+            card.innerHTML = `
+                <button class="fav-btn ${saved ? 'saved' : ''}" data-name="${recipe.name}" onclick='toggleFavorite(${JSON.stringify(recipe).replace(/'/g, "&#39;")}, event)'>
+                    ${saved ? "♥" : "♡"}
+                </button>
+                <div class="card-badges">
+                    ${dietBadge}
+                    ${healthBadge}
+                </div>
+                <h2>${recipe.name}</h2>
+                <p class="meta">${recipe.total_time} · ${recipe.calories} kcal per serving</p>
+                <p class="preview">${recipe.description || ""}</p>
+                <span class="view-btn">Read full recipe</span>
+            `;
+
+            card.onclick = () => openRecipeModal(recipe);
+            output.appendChild(card);
+        });
+    })
+    .catch(() => {
+        loading.classList.add("hidden");
+        output.innerHTML = `<p class="error">Could not reach the server. Run <code>python app.py</code> first.</p>`;
+    });
+}
+
+function openRecipeModal(recipe) {
+    currentModalRecipe = recipe;
+
+    const stepsHtml = recipe.steps.map(s => {
+        const text = typeof s === "string" ? s : s.text;
+        const time = (typeof s === "object" && s.time)
+            ? `<span class="step-time">${s.time}</span>` : "";
+        const stepNum = (typeof s === "object" && s.step) ? s.step : "";
+        return `<li><span class="step-num">${stepNum}</span><span class="step-text">${text}</span>${time}</li>`;
+    }).join("");
+
+    const ingredientsHtml = (recipe.ingredients || [])
+        .map(i => `<li>${i}</li>`).join("");
+
+    const dietLabel = recipe.diet === "veg" ? "Vegetarian" : "Non-vegetarian";
+    const healthLabel = recipe.healthy ? "Healthy" : "Indulgent";
+
+    document.getElementById("modalBody").innerHTML = `
+        <h2>${recipe.name}</h2>
+        <p class="modal-desc">${recipe.description || ""}</p>
+        <div class="modal-badges">
+            <span class="badge ${recipe.diet}">${dietLabel}</span>
+            <span class="badge ${recipe.healthy ? 'healthy' : 'indulgent'}">${healthLabel}</span>
+        </div>
+        <div class="modal-stats">
+            <div class="stat"><strong>Prep</strong><p>${recipe.prep_time || "—"}</p></div>
+            <div class="stat"><strong>Cook</strong><p>${recipe.cook_time || "—"}</p></div>
+            <div class="stat"><strong>Total</strong><p>${recipe.total_time || "—"}</p></div>
+            <div class="stat"><strong>Calories</strong><p>${recipe.calories} kcal</p></div>
+            <div class="stat"><strong>Servings</strong><p>${recipe.servings || 2}</p></div>
+        </div>
+        <h3>Ingredients</h3>
+        <ul class="ingredients-list">${ingredientsHtml}</ul>
+        <h3>Method</h3>
+        <ol class="steps-list">${stepsHtml}</ol>
+    `;
+
+    updateModalFavButton();
+    document.getElementById("recipeModal").classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+}
+
+function closeRecipeModal() {
+    currentModalRecipe = null;
+    document.getElementById("recipeModal").classList.add("hidden");
+    document.body.style.overflow = "";
+}
+
+// Init
+renderFavoritesSidebar();
+updateFavoriteCounts();
+</script>
+
+</body>
+</html>
