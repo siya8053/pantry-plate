@@ -9,7 +9,6 @@
 </head>
 <body>
 
-<!-- Background images -->
 <div class="food-bg">
     <div class="food-slide active" style="background-image: url('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=1920&q=80')"></div>
     <div class="food-slide" style="background-image: url('https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=1920&q=80')"></div>
@@ -19,7 +18,6 @@
 </div>
 <div class="bg-overlay"></div>
 
-<!-- Sidebar -->
 <aside id="sidebar" class="sidebar">
     <div class="sidebar-header">
         <h2>Pantry <em>Plate</em></h2>
@@ -42,7 +40,6 @@
 </aside>
 <div id="sidebarBackdrop" class="sidebar-backdrop hidden" onclick="toggleSidebar()"></div>
 
-<!-- Top bar -->
 <header class="topbar">
     <button class="menu-btn" onclick="toggleSidebar()" aria-label="Open menu">☰</button>
     <span class="topbar-brand">Pantry <span>Plate</span></span>
@@ -107,7 +104,6 @@ const FAVORITES_KEY = "pantryPlateFavorites";
 let currentModalRecipe = null;
 let favorites = loadFavorites();
 
-// Background slideshow
 const slides = document.querySelectorAll(".food-slide");
 let slideIndex = 0;
 setInterval(() => {
@@ -127,7 +123,6 @@ document.addEventListener("keydown", (e) => {
     }
 });
 
-// ---------- Favorites ----------
 function loadFavorites() {
     try {
         return JSON.parse(localStorage.getItem(FAVORITES_KEY)) || [];
@@ -223,7 +218,6 @@ function openRecipeFromSidebar(recipe) {
     openRecipeModal(recipe);
 }
 
-// ---------- Sidebar ----------
 function toggleSidebar() {
     document.getElementById("sidebar").classList.toggle("open");
     document.getElementById("sidebarBackdrop").classList.toggle("hidden");
@@ -235,11 +229,11 @@ function closeSidebarIfOpen() {
 }
 
 function showSidebarSection(section) {
-    // ready for more sections later
+    
     document.getElementById("favoritesSection").style.display = section === "favorites" ? "block" : "none";
 }
 
-// ---------- API ----------
+
 function generate() {
     const item = document.getElementById("itemInput").value.trim();
     const diet = document.getElementById("dietFilter").value;
@@ -256,7 +250,7 @@ function generate() {
 
     loading.classList.remove("hidden");
 
-    fetch("/get_recipe", {   // <-- changed to relative URL
+    fetch("/get_recipe", {  
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: `item=${encodeURIComponent(item)}&diet=${diet}&healthy=${healthy}`
@@ -356,8 +350,6 @@ function closeRecipeModal() {
     document.getElementById("recipeModal").classList.add("hidden");
     document.body.style.overflow = "";
 }
-
-// Init
 renderFavoritesSidebar();
 updateFavoriteCounts();
 </script>
