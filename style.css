@@ -27,9 +27,6 @@ body {
     line-height: 1.5;
 }
 
-/* ---------------------------------------------------------
-   BACKGROUND IMAGES
---------------------------------------------------------- */
 .food-bg {
     position: fixed;
     inset: 0;
@@ -72,9 +69,6 @@ body {
         radial-gradient(circle at 85% 85%, rgba(95, 111, 82, 0.1), transparent 42%);
 }
 
-/* ---------------------------------------------------------
-   TOP BAR
---------------------------------------------------------- */
 .topbar {
     position: fixed;
     top: 0;
@@ -127,9 +121,6 @@ body {
     color: var(--accent);
 }
 
-/* ---------------------------------------------------------
-   SIDEBAR
---------------------------------------------------------- */
 .sidebar {
     position: fixed;
     top: 0;
@@ -331,10 +322,6 @@ body {
     background: #cfc5b8;
     border-radius: 10px;
 }
-
-/* ---------------------------------------------------------
-   MAIN LAYOUT
---------------------------------------------------------- */
 .main-container {
     width: min(1000px, 92%);
     margin: 0 auto;
@@ -346,9 +333,6 @@ body {
     margin-bottom: 38px;
 }
 
-/* ---------------------------------------------------------
-   CUTE ICONIC HEADING
---------------------------------------------------------- */
 .eyebrow {
     font-size: 0.82rem;
     font-weight: 600;
@@ -455,10 +439,6 @@ body {
     margin: 0 auto;
     line-height: 1.65;
 }
-
-/* ---------------------------------------------------------
-   FILTERS
---------------------------------------------------------- */
 .filters {
     display: flex;
     justify-content: center;
@@ -506,9 +486,6 @@ body {
     color: var(--ink);
 }
 
-/* ---------------------------------------------------------
-   INPUT
---------------------------------------------------------- */
 .input-area {
     display: flex;
     justify-content: center;
@@ -564,9 +541,6 @@ button:active {
     transform: translateY(0);
 }
 
-/* ---------------------------------------------------------
-   LOADING & ERROR
---------------------------------------------------------- */
 .loading {
     text-align: center;
     margin-top: 28px;
@@ -601,9 +575,6 @@ button:active {
     border-radius: 4px;
 }
 
-/* ---------------------------------------------------------
-   RESULTS GRID
---------------------------------------------------------- */
 .results-grid {
     margin-top: 36px;
     display: grid;
@@ -611,9 +582,6 @@ button:active {
     gap: 24px;
 }
 
-/* ---------------------------------------------------------
-   RECIPE CARDS
---------------------------------------------------------- */
 .recipe-card {
     position: relative;
     background: rgba(255, 253, 249, 0.92);
@@ -709,7 +677,7 @@ button:active {
     text-underline-offset: 3px;
 }
 
-/* Favorite button on cards */
+
 .fav-btn {
     position: absolute;
     top: 14px;
@@ -739,9 +707,6 @@ button:active {
     color: var(--accent-dark);
 }
 
-/* ---------------------------------------------------------
-   MODAL
---------------------------------------------------------- */
 .modal {
     position: fixed;
     inset: 0;
@@ -971,9 +936,6 @@ button:active {
     border-radius: 10px;
 }
 
-/* ---------------------------------------------------------
-   RESPONSIVE
---------------------------------------------------------- */
 @media (max-width: 600px) {
     .main-container {
         padding-top: 100px;
