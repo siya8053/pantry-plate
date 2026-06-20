@@ -6,10 +6,6 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-# ----------------------------------------------------------------------
-# RECIPE DATABASES
-# ----------------------------------------------------------------------
-
 paneer_recipes = [
     {
         "name": "Paneer Butter Masala",
@@ -497,9 +493,6 @@ rice_recipes = [
     }
 ]
 
-# ----------------------------------------------------------------------
-# INGREDIENT MAPPING (including rice)
-# ----------------------------------------------------------------------
 ingredient_map = {
     "paneer": paneer_recipes,
     "cottage cheese": paneer_recipes,
@@ -516,9 +509,6 @@ ingredient_map = {
     "chawal": rice_recipes
 }
 
-# ----------------------------------------------------------------------
-# GENERATE RECIPES FUNCTION (FIXED FILTERING)
-# ----------------------------------------------------------------------
 def generate_recipes(item, diet_filter=None, healthy_filter=None):
     item = item.lower().strip()
     recipes = None
@@ -589,9 +579,7 @@ def generate_recipes(item, diet_filter=None, healthy_filter=None):
     # Return at most 6 recipes, or empty list if none left
     return recipes[:6]
 
-# ----------------------------------------------------------------------
-# FLASK ROUTES
-# ----------------------------------------------------------------------
+
 @app.route("/")
 def index():
     return send_from_directory(".", "pantry.html")
